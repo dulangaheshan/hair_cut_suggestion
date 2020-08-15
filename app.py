@@ -5,14 +5,15 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 import pickle
-from flask import Flask, request, render_template, jsonify, make_response
+from flask import Flask, request, render_template, jsonify, make_response, send_file
 from werkzeug.utils import secure_filename
 
 from functions_only_save import make_face_df_save, find_face_shape
 from recommender import process_rec_pics, run_recommender_face_shape
+from flask_cors import CORS
 
 application = Flask(__name__, static_url_path="")
-
+CORS(application, resources={r"/api/*": {"origins": "http://localhost"}})
 df = pd.DataFrame(
     columns=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17',
              '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29',
@@ -74,7 +75,7 @@ def predict():
     face_shape = find_face_shape(df, file_num)
     process_rec_pics(style_df)
     img_filename = run_recommender_face_shape(face_shape[0], style_df, hair_length_input)
-    return jsonify({'Face Shape': face_shape[0], 'img_filename': img_filename})
+    return jsonify({'Face Shape': face_shape[0], 'img_filename': "http://10.0.2.2:5000/api/downloadfile/?path=" + img_filename})
 
 
 @application.route('/predict_user_face_shape', methods=['GET', 'POST'])
@@ -96,6 +97,33 @@ def output_image(img_filename):
         img_data = f.read()
     response = make_response(img_data)
     response.headers['Content-Type'] = 'image/png'
+    return response
+
+@application.route("/api/downloadfile/")
+def download_file():
+    path = request.args.get('path')
+    print(path)
+    return send_file(path, as_attachment=True)
+
+
+
+@application.after_request
+def after_request_func(response):
+    origin = ''
+    if request.headers.get('Origin'):
+        origin = request.headers.get('Origin')
+
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Headers', 'x-csrf-token')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE')
+    else:
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        response.headers.add('Access-Control-Allow-Origin', origin)
+
     return response
 
 if __name__ == '__main__':

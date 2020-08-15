@@ -14,6 +14,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import uuid
 
+
 image_dir = "data/pics"
 
 style_df = pd.DataFrame()
@@ -78,12 +79,12 @@ def run_recommender(test_shape):
     print(face_shape_input)
     r = 6
     
-    n_col = 3
-    n_row = 2
+    n_col = 2
+    n_row = 3
     recommended_df = style_df.loc[(style_df['face_shape'] ==face_shape_input) & (style_df['hair_length']==       hair_length_input)].sort_values('score', ascending = 0).reset_index(drop=True)
     recommended_df = recommended_df.head(r)
     
-    plt.figure(figsize=(5 * n_col, 4 * n_row))
+    plt.figure(figsize=(4 * n_col, 5 * n_row))
     plt.subplots_adjust(bottom=0, left=.01, right=.99, top=.90, hspace=.35)    
     font = ImageFont.truetype("fonts/Arial.ttf", 60)
     for p in range(0,r):
@@ -120,14 +121,14 @@ def run_recommender_face_shape(test_shape,style_df,hair_length_input):
     face_shape_input = test_shape
     r = 6
     
-    n_col = 3
-    n_row = 2
+    n_col = 2
+    n_row = 3
     img_path = []
     recommended_df = style_df.loc[(style_df['face_shape'] ==face_shape_input) & (style_df['hair_length']== hair_length_input)].sort_values('score', ascending = 0).reset_index(drop=True)
     recommended_df = recommended_df.head(r)
     print(recommended_df)
 
-    plt.figure(figsize=(4 * n_col, 3 * n_row))
+    plt.figure(figsize=(3 * n_col, 4 * n_row))
     plt.subplots_adjust(bottom=.06, left=.01, right=.99, top=.90, hspace=.50)    
     font = ImageFont.truetype("fonts/Arial.ttf", 60)
     for p in range(0,r):
