@@ -1,6 +1,8 @@
+import json
 import os
 import random
 import pandas as pd
+import requests
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
@@ -11,8 +13,20 @@ from werkzeug.utils import secure_filename
 from functions_only_save import make_face_df_save, find_face_shape
 from recommender import process_rec_pics, run_recommender_face_shape
 from flask_cors import CORS
+import sqlalchemy as sa
 
 application = Flask(__name__, static_url_path="")
+
+# ssl_args = {'ssl': {'ca': 'YOUR_SSL_CERT_PATH'}}
+# server = "localhost"
+# database = "salondb"
+# db_url = 'mysql://{}@{}/{}'.format("root", server, database)
+# print(db_url)
+#
+# engine = sa.create_engine(db_url, echo=False)
+# cnx = engine.connect()
+
+
 CORS(application, resources={r"/api/*": {"origins": "http://localhost"}})
 df = pd.DataFrame(
     columns=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17',
@@ -50,6 +64,7 @@ def predict():
     image.save(os.path.join('data/pics/recommendation_pics/', filename))
 
 
+
     data = {'file_name': filename, 'person_see_up_dos': person_see_up_dos, 'person_hair_length': person_hair_length}
 
 
@@ -75,7 +90,29 @@ def predict():
     face_shape = find_face_shape(df, file_num)
     process_rec_pics(style_df)
     img_filename = run_recommender_face_shape(face_shape[0], style_df, hair_length_input)
-    return jsonify({'Face Shape': face_shape[0], 'img_filename': "http://10.0.2.2:5000/api/downloadfile/?path=" + img_filename})
+
+    # with open(f"{img_filename}", 'rb') as f:
+    #     img_data = f.read()
+    #     print(type(img_data))
+    #     files = [
+    #         ('document', (img_filename, open(img_filename, 'rb'), 'application/octet'))
+    #
+    #     ]
+    #     headers = {'Content-type': 'multipart/form-data'}
+    #     res = requests.post("http://127.0.0.1:5001/test", files=files, headers=headers)
+    #     print(res)
+    files = [
+        ('document', (img_filename, open(img_filename, 'rb'), 'application/octet'))
+
+    ]
+    print(files)
+    headers = {'Content-type': 'multipart/form-data'}
+    res = requests.post("http://salonserver-env.eba-g3vpimmh.us-east-1.elasticbeanstalk.com/test", files=files)
+
+    d = json.loads(res.text)
+    print(d['test'])
+
+    return jsonify({'Face Shape': face_shape[0], 'img_filename': d['test']})
 
 
 @application.route('/predict_user_face_shape', methods=['GET', 'POST'])
@@ -95,6 +132,7 @@ def output_image(img_filename):
     """Send the output image."""
     with open(f"output/{img_filename}", 'rb') as f:
         img_data = f.read()
+        res = requests.post("http://127.0.0.1:5000/determine_escalation", data=img_data)
     response = make_response(img_data)
     response.headers['Content-Type'] = 'image/png'
     return response
