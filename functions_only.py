@@ -13,11 +13,6 @@ from pathlib import Path
 import os
 import random
 
-# The function in the py file (make_face_df) is the primary function for feature development. For each image, the function identifies each of the facial features utilizing face_recognition. Using the eyes as the pivot point, it rotates the face so it is facing forward. It also crops the photos so that every image has the same dimensions and the eyes are locked into the same place on each photo. The function identifies the location of the facial features using the new aligned/cropped image. 
-
-# The function then calculates the features described above: the angles between the chin point (9) and all of the lower facial features (1 - 8, 10 - 17), Face Width, Face Height, the ratio of height to face,	Jaw width, the ratio of the jaw to face width, the mid-jaw width and the mid-jaw to face width.
-
-# Note that because I cropped and aligned each face to the same point, we can now compare lengths as an absolute number.  If I had not adjusted this, those numbers would be meaningless because all of the photos are at a different distance from the camera, meaning a longer number for the length may not mean that the face was longer but rather the face was close to the camera. This will be important for the logic in my comparisons below.
 
 
 def distance(p1,p2):
